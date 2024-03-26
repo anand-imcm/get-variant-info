@@ -9,6 +9,7 @@ workflow main {
         File? query_samples
         Array [File] imputed_vcf
         String prefix
+        Array [String] extract_item
     }
     
     parameter_meta {
@@ -16,17 +17,18 @@ workflow main {
         query_samples: "A file containing a list of sample IDs. The file should have one sample ID per row. (optional)"
         imputed_vcf: "An array of imputed VCF files and their indices. The VCF files should be in .vcf.gz format and the indices should be in CSI or TBI format."
         prefix: "A prefix for the output files."
+        extract_item: "An array of the entry to be extracted from the FORMAT field of the VCF file. The choices are GT,DS,GP."
     }
 
     call info.extract {
-        input: query_variants = query_variants, query_samples = query_samples, imputed_vcf = imputed_vcf, prefix = prefix
+        input: query_variants = query_variants, query_samples = query_samples, imputed_vcf = imputed_vcf, prefix = prefix, extract_item = extract_item
     }
     
     output {
         File snp_info = extract.snp_info
-        File genotype_info = extract.gt_info
-        File dosage_info  = extract.ds_info
-        File geno_prob_info = extract.gp_info
+        File? genotype_info = extract.gt_info
+        File? dosage_info  = extract.ds_info
+        File? geno_prob_info = extract.gp_info
     }
     
     meta {
