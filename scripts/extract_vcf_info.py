@@ -31,7 +31,7 @@ def extract_vcf_info(vcf_file, extract):
 
     Args:
         vcf_file (str): Path to the VCF file.
-        extract (str): Choices are "GT", "DS", "GP"
+        extract (list): A list containing any of the following: ["GT","DS","GP"]
 
     Returns:
         None
@@ -79,17 +79,8 @@ if __name__ == "__main__":
         formatter_class=argparse.RawTextHelpFormatter
     )
     parser.add_argument('--vcf', help='The VCF file to parse.', required=True)
-    # parser.add_argument('--extract', help='The type of information to extract. Choices are "GT", "DS", "GP".', required=True, choices=['GT', 'DS', 'GP'], )
-    parser.add_argument('--extract', help='The type of information to extract. Choices are "GT", "DS", "GP".', required=True, choices=['GT', 'DS', 'GP'], nargs='+')
+    parser.add_argument('--extract', help='The type of information to extract. Choices are comma separated: GT,DS,GP', required=True)
     parser.add_argument('--out', help='Provide the name of output file (including the file path)', required=True)
     args = parser.parse_args()
-    # output_file_temp = f"{args.out}.temp.txt"
-    extract_vcf_info(args.vcf, args.extract)
-
-    # # transposed file:
-    # df = pd.read_csv(output_file_temp, sep='\t', index_col=0)
-    # df_transposed = df.transpose().reset_index()
-    # df_transposed.rename(columns={'index': 'IID'}, inplace=True)
-    # df_transposed.to_csv(args.out, sep=',', index=False)
-    # os.remove(output_file_temp)
-    # print(f"Output generated: {args.out}")
+    extract = args.extract.split(',')
+    extract_vcf_info(args.vcf, extract)
