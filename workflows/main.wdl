@@ -6,7 +6,7 @@ workflow main {
     input {
         File query_variants
         File? query_samples
-        File imputed_vcf
+        Array [File] imputed_vcf
         String prefix
     }
     call info.extract {
