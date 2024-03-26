@@ -9,7 +9,7 @@ workflow main {
         File? query_samples
         Array [File] imputed_vcf
         String prefix
-        Array [String] extract_item
+        String extract_item
     }
     
     parameter_meta {
