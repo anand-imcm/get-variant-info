@@ -7,6 +7,7 @@ task extract {
         File? query_samples
         Array [File] imputed_vcf
         String prefix
+        Array [String] extract_item
     }
     
     parameter_meta {
@@ -26,10 +27,12 @@ task extract {
                 bcftools index -c $vcf
             fi
         done
+        
         # Get unique chromosome names
         CHROMOSOMES=$(awk '{print $1}' ~{query_variants} | sort | uniq)
         # Split the query_variants file per chromosome
         VCF_FILES=""
+        
         for chr in $CHROMOSOMES; do
             awk -v chr=$chr '$1 == chr' ~{query_variants} > ${chr}_query_subset_variants_list.txt
             if [ -f ${chr}_query_subset_variants_list.txt ] && [ -f ~{query_samples} ]; then
@@ -39,21 +42,20 @@ task extract {
             fi
             VCF_FILES="${VCF_FILES} ~{prefix}_${chr}_query_subset.vcf"
         done
+        
         bcftools concat ${VCF_FILES} -o ~{prefix}_query_extracted.vcf
         # extract snp INFO
         python3 /scripts/extract_snp_info.py --vcf ~{prefix}_query_extracted.vcf --out ~{prefix}_query_subset_extracted_snps_info.tsv
         # extract FORMAT fields
-        python3 /scripts/extract_vcf_info.py --vcf ~{prefix}_query_extracted.vcf --out ~{prefix}_extracted_snps_bg_genotype.csv --extract GT
-        python3 /scripts/extract_vcf_info.py --vcf ~{prefix}_query_extracted.vcf --out ~{prefix}_extracted_snps_dosage.csv --extract DS
-        python3 /scripts/extract_vcf_info.py --vcf ~{prefix}_query_extracted.vcf --out ~{prefix}_extracted_snps_bg_prob.csv --extract GP
+        python3 /scripts/extract_vcf_info.py --vcf ~{prefix}_query_extracted.vcf --out ~{prefix}_extracted --extract ~{sep=' ' extract_item}
     >>>
     
     output {
         File vcf = prefix + "_query_extracted.vcf"
         File snp_info = prefix + "_query_subset_extracted_snps_info.tsv"
-        File gt_info = prefix + "_extracted_snps_bg_genotype.csv"
-        File ds_info = prefix + "_extracted_snps_dosage.csv"
-        File gp_info = prefix + "_extracted_snps_bg_prob.csv"
+        File? gt_info = prefix + "_extracted_snps_bg_genotype.csv"
+        File? ds_info = prefix + "_extracted_snps_dosage.csv"
+        File? gp_info = prefix + "_extracted_snps_bg_prob.csv"
     }
     
     runtime {
