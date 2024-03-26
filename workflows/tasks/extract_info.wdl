@@ -9,6 +9,8 @@ task extract {
         String prefix
     }
     
+    Int disk_size_gb = ceil(size(imputed_vcf, "GiB")) + 5
+
     command <<<
         for vcf in ~{sep=' ' imputed_vcf}; do
             ln -s $vcf $(basename $vcf)
@@ -32,11 +34,11 @@ task extract {
         done
         bcftools concat ${VCF_FILES} -o ~{prefix}_concatenated_query_subset.vcf
         # extract snp INFO
-        python3 /home/anand/Documents/aspire-files/data-oxford/terra.bio/get-variant-info/scripts/extract_snp_info.py --vcf ~{prefix}_concatenated_query_subset.vcf --out ~{prefix}_query_subset_extracted_snps_info.tsv
+        python3 /scripts/extract_snp_info.py --vcf ~{prefix}_concatenated_query_subset.vcf --out ~{prefix}_query_subset_extracted_snps_info.tsv
         # extract FORMAT fields
-        python3 /home/anand/Documents/aspire-files/data-oxford/terra.bio/get-variant-info/scripts/extract_vcf_info.py --vcf ~{prefix}_concatenated_query_subset.vcf --out ~{prefix}_extracted_snps_bg_genotype.csv --extract GT
-        python3 /home/anand/Documents/aspire-files/data-oxford/terra.bio/get-variant-info/scripts/extract_vcf_info.py --vcf ~{prefix}_concatenated_query_subset.vcf --out ~{prefix}_extracted_snps_dosage.csv --extract DS
-        python3 /home/anand/Documents/aspire-files/data-oxford/terra.bio/get-variant-info/scripts/extract_vcf_info.py --vcf ~{prefix}_concatenated_query_subset.vcf --out ~{prefix}_extracted_snps_bg_prob.csv --extract GP
+        python3 /scripts/extract_vcf_info.py --vcf ~{prefix}_concatenated_query_subset.vcf --out ~{prefix}_extracted_snps_bg_genotype.csv --extract GT
+        python3 /scripts/extract_vcf_info.py --vcf ~{prefix}_concatenated_query_subset.vcf --out ~{prefix}_extracted_snps_dosage.csv --extract DS
+        python3 /scripts/extract_vcf_info.py --vcf ~{prefix}_concatenated_query_subset.vcf --out ~{prefix}_extracted_snps_bg_prob.csv --extract GP
     >>>
     
     output {
@@ -44,5 +46,11 @@ task extract {
         File gt_info = prefix + "_extracted_snps_bg_genotype.csv"
         File ds_info = prefix + "_extracted_snps_dosage.csv"
         File gp_info = prefix + "_extracted_snps_bg_prob.csv"
+    }
+
+    runtime {
+        docker: "docker.io/library/extract"
+        memory: "32G"
+        disks: "local-disk ~{disk_size_gb} HDD"
     }
 }
