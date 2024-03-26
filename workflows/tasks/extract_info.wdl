@@ -15,6 +15,7 @@ task extract {
         query_samples: "A file containing a list of sample IDs. The file should have one sample ID per row. (optional)"
         imputed_vcf: "An array of imputed VCF files and their indices. The VCF files should be in .vcf.gz format and the indices should be in CSI or TBI format."
         prefix: "A prefix for the output files."
+        extract_item: "An array of the entry to be extracted from the FORMAT field of the VCF file. The choices are GT,DS,GP."
     }
     
     Int disk_size_gb = ceil(size(imputed_vcf, "GiB")) + 5
