@@ -1,6 +1,6 @@
 version 1.0
 
-task extract_info {
+task extract {
     input {
         File query_variants
         File? query_samples
