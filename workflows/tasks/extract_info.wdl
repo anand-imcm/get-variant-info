@@ -9,8 +9,15 @@ task extract {
         String prefix
     }
     
+    parameter_meta {
+        query_variants: "A file containing the list of query variants. Each line should have the format: Chromosome, Pos, ID, Ref, Alt."
+        query_samples: "A file containing a list of sample IDs. The file should have one sample ID per row. (optional)"
+        imputed_vcf: "An array of imputed VCF files and their indices. The VCF files should be in .vcf.gz format and the indices should be in CSI or TBI format."
+        prefix: "A prefix for the output files."
+    }
+    
     Int disk_size_gb = ceil(size(imputed_vcf, "GiB")) + 5
-
+    
     command <<<
         for vcf in ~{sep=' ' imputed_vcf}; do
             ln -s $vcf $(basename $vcf)
@@ -32,22 +39,23 @@ task extract {
             fi
             VCF_FILES="${VCF_FILES} ~{prefix}_${chr}_query_subset.vcf"
         done
-        bcftools concat ${VCF_FILES} -o ~{prefix}_concatenated_query_subset.vcf
+        bcftools concat ${VCF_FILES} -o ~{prefix}_query_extracted.vcf
         # extract snp INFO
-        python3 /scripts/extract_snp_info.py --vcf ~{prefix}_concatenated_query_subset.vcf --out ~{prefix}_query_subset_extracted_snps_info.tsv
+        python3 /scripts/extract_snp_info.py --vcf ~{prefix}_query_extracted.vcf --out ~{prefix}_query_subset_extracted_snps_info.tsv
         # extract FORMAT fields
-        python3 /scripts/extract_vcf_info.py --vcf ~{prefix}_concatenated_query_subset.vcf --out ~{prefix}_extracted_snps_bg_genotype.csv --extract GT
-        python3 /scripts/extract_vcf_info.py --vcf ~{prefix}_concatenated_query_subset.vcf --out ~{prefix}_extracted_snps_dosage.csv --extract DS
-        python3 /scripts/extract_vcf_info.py --vcf ~{prefix}_concatenated_query_subset.vcf --out ~{prefix}_extracted_snps_bg_prob.csv --extract GP
+        python3 /scripts/extract_vcf_info.py --vcf ~{prefix}_query_extracted.vcf --out ~{prefix}_extracted_snps_bg_genotype.csv --extract GT
+        python3 /scripts/extract_vcf_info.py --vcf ~{prefix}_query_extracted.vcf --out ~{prefix}_extracted_snps_dosage.csv --extract DS
+        python3 /scripts/extract_vcf_info.py --vcf ~{prefix}_query_extracted.vcf --out ~{prefix}_extracted_snps_bg_prob.csv --extract GP
     >>>
     
     output {
+        File vcf = prefix + "_query_extracted.vcf"
         File snp_info = prefix + "_query_subset_extracted_snps_info.tsv"
         File gt_info = prefix + "_extracted_snps_bg_genotype.csv"
         File ds_info = prefix + "_extracted_snps_dosage.csv"
         File gp_info = prefix + "_extracted_snps_bg_prob.csv"
     }
-
+    
     runtime {
         docker: "docker.io/library/extract"
         memory: "32G"
