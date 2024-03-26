@@ -7,7 +7,7 @@ task extract {
         File? query_samples
         Array [File] imputed_vcf
         String prefix
-        Array [String] extract_item
+        String extract_item
     }
     
     parameter_meta {
@@ -48,7 +48,7 @@ task extract {
         # extract snp INFO
         python3 /scripts/extract_snp_info.py --vcf ~{prefix}_query_extracted.vcf --out ~{prefix}_query_subset_extracted_snps_info.tsv
         # extract FORMAT fields
-        python3 /scripts/extract_vcf_info.py --vcf ~{prefix}_query_extracted.vcf --out ~{prefix}_extracted --extract ~{sep=' ' extract_item}
+        python3 /scripts/extract_vcf_info.py --vcf ~{prefix}_query_extracted.vcf --out ~{prefix}_extracted --extract ~{extract_item}
     >>>
     
     output {
