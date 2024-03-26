@@ -1,0 +1,12 @@
+name: base
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+- python=3.10
+- bcftools<=1.18
+- pip
+- pip:
+  - pysam
+
