@@ -9,13 +9,14 @@ task extract {
     }
 
     command <<<
+        bcftools index -c ~{imputed_vcf}
         if [ -f ~{query_variants} ] && [ -f ~{query_samples} ]; then
             bcftools view --regions-file ~{query_variants} --samples-file ~{query_samples} ~{imputed_vcf} > ~{prefix}_query_subset.vcf
         else
             bcftools view --regions-file ~{query_variants} ~{imputed_vcf} > ~{prefix}_query_subset.vcf
         fi
         # extract snp INFO
-        python3 extract_snp_info.py --vcf ~{prefix}_query_subset.vcf --out ~{prefix}_query_subset_extracted_snps_info.tsv
+        python3 /home/anand/Documents/aspire-files/data-oxford/terra.bio/get-variant-info/scripts/extract_snp_info.py --vcf ~{prefix}_query_subset.vcf --out ~{prefix}_query_subset_extracted_snps_info.tsv
         # extract FORMAT fields
         python3 /home/anand/Documents/aspire-files/data-oxford/terra.bio/get-variant-info/scripts/extract_vcf_info.py --vcf ~{prefix}_query_subset.vcf --out ~{prefix}_extracted_snps_bg_genotype.csv --extract GT
         python3 /home/anand/Documents/aspire-files/data-oxford/terra.bio/get-variant-info/scripts/extract_vcf_info.py --vcf ~{prefix}_query_subset.vcf --out ~{prefix}_extracted_snps_dosage.csv --extract DS
