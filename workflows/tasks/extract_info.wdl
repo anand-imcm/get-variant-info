@@ -53,9 +53,9 @@ task extract {
     output {
         File vcf = prefix + "_query_extracted.vcf"
         File snp_info = prefix + "_query_subset_extracted_snps_info.tsv"
-        File? gt_info = prefix + "_extracted_snps_bg_genotype.csv"
-        File? ds_info = prefix + "_extracted_snps_dosage.csv"
-        File? gp_info = prefix + "_extracted_snps_bg_prob.csv"
+        File? gt_info = prefix + "_extracted_GT.csv"
+        File? ds_info = prefix + "_extracted_DS.csv"
+        File? gp_info = prefix + "_extracted_GP.csv"
     }
     
     runtime {
