@@ -106,7 +106,7 @@ if __name__ == "__main__":
     valid_options = ['SNP_INFO', 'GT', 'DS', 'GP']
     if args.extract:
         user_options = args.extract.split(',')
-        extract = [option for option in user_options if option in valid_options]
+        extract = ["SNP_INFO"] + [option for option in user_options if option in valid_options and option != 'SNP_INFO']
     else:
         extract = ["SNP_INFO"]
 
