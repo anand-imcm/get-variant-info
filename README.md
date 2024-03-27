@@ -32,7 +32,7 @@ The output is a set of files containing the extracted information.
 - `query_samples`: A file with a list of sample IDs. Each line should contain one sample ID. (optional)
 - `imputed_vcf`: Array of imputed VCF files and their indices. VCF files should be in .vcf.gz format and indices in CSI or TBI format. (required)
 - `prefix`: Prefix for the output files. (required)
-- `extract_item`: A string specifying the information to extract from the FORMAT field of the VCF file. The available choices are GT, DS, and GP. Please provide as a comma-separated string. (required)
+- `extract_item`: A string specifying the information to extract from the FORMAT field of the VCF file. The available choices are GT, DS, and GP. Please provide as a comma-separated string. Example: `GT,DS` (required)
 
 ## Workflow Outputs
 
@@ -48,18 +48,17 @@ The output is a set of files containing the extracted information.
   - `ER2`: Empirical R-square
   - `INFO`: Additional information indicating if the variant was imputed, typed, or typed only
 
-- `genotype_info`: `*_extracted_GT.csv` file contains the following columns:
+- `genotype_info`: `*_extracted_GT.csv` file contains the following columns (only generated if "GT" is specified as input in `extract_item` parameter of the workflow):
   - `IID`: Sample ID
   - `CHROM:POS:REF:ALT`: A combination of chromosome, position, reference allele, and alternate allele, with the values corresponding to the genotype for each sample
 
-- `dosage_info`: `*_extracted_DS.csv` file contains the following columns:
+- `dosage_info`: `*_extracted_DS.csv` file contains the following columns (only generated if "DS" is specified as input in `extract_item` parameter of the workflow):
   - `IID`: Sample ID
   - `CHROM:POS:REF:ALT`: A combination of chromosome, position, reference allele, and alternate allele, with the values corresponding to the estimated alternate allele dosage for each sample
 
-- `geno_prob_info`: `*_extracted_GP.csv` file contains the following columns:
+- `geno_prob_info`: `*_extracted_GP.csv` file contains the following columns (only generated if "GP" is specified as input in `extract_item` parameter of the workflow):
   - `IID`: Sample ID
   - `CHROM:POS:REF:ALT`: A combination of chromosome, position, reference allele, and alternate allele, with the values corresponding to the estimated posterior probabilities for genotypes 0/0, 0/1, and 1/1 for each sample
-
 
 ## Components
 
@@ -67,7 +66,9 @@ The output is a set of files containing the extracted information.
   - pysam
   - pandas
   - argparse
+
 - **Tools**
   - bcftools
+
 - **Containers**
   - ghcr.io/IMCM-OX/get-variant-info
