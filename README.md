@@ -36,10 +36,29 @@ The output is a set of files containing the extracted information.
 
 ## Workflow Outputs
 
-- `snp_info`: File containing SNP information.
-- `genotype_info`: Optional file containing genotype information.
-- `dosage_info`: Optional file containing estimated alternate allele dosage information.
-- `geno_prob_info`: Optional file containing estimated posterior probabilities for genotypes.
+- `SNP_INFO`: `*_extracted_SNP_INFO.tsv` file contains the following columns:
+  - `CHROM:POS:REF:ALT`: A combination of chromosome, position, reference allele, and alternate allele
+  - `CHROM`: Chromosome
+  - `POS`: Position
+  - `REF`: Reference allele
+  - `ALT`: Alternate allele
+  - `AF`: Allele frequency
+  - `MAF`: Minor allele frequency
+  - `R2`: Imputation accuracy
+  - `ER2`: Empirical R-square
+  - `INFO`: Additional information indicating if the variant was imputed, typed, or typed only
+
+- `genotype_info`: `*_extracted_GT.csv` file contains the following columns:
+  - `IID`: Sample ID
+  - `CHROM:POS:REF:ALT`: A combination of chromosome, position, reference allele, and alternate allele, with the values corresponding to the genotype for each sample
+
+- `dosage_info`: `*_extracted_DS.csv` file contains the following columns:
+  - `IID`: Sample ID
+  - `CHROM:POS:REF:ALT`: A combination of chromosome, position, reference allele, and alternate allele, with the values corresponding to the estimated alternate allele dosage for each sample
+
+- `geno_prob_info`: `*_extracted_GP.csv` file contains the following columns:
+  - `IID`: Sample ID
+  - `CHROM:POS:REF:ALT`: A combination of chromosome, position, reference allele, and alternate allele, with the values corresponding to the estimated posterior probabilities for genotypes 0/0, 0/1, and 1/1 for each sample
 
 
 ## Components
