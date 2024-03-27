@@ -12,7 +12,7 @@ workflow main {
         File? query_samples
         Array [File] imputed_vcf
         String prefix
-        String extract_item
+        String extract_item = "GT"
     }
     
     parameter_meta {
@@ -20,7 +20,7 @@ workflow main {
         query_samples: "A file with list of sample IDs. Each line should contain one sample ID. (optional)"
         imputed_vcf: "Array of imputed VCF files and their indices. VCF files should be in .vcf.gz format and indices in CSI or TBI format. (required)"
         prefix: "Prefix for the output files. (required)"
-        extract_item: "A string specifying the information to extract from the FORMAT field of the VCF file. The available choices are GT, DS, and GP. Please provide as a comma-separated string. (required)"
+        extract_item: "A string specifying the information to extract from the FORMAT field of the VCF file. The available choices are GT, DS, and GP. Please provide as a comma-separated string. If not provided, it defaults to 'GT'."
     }
     
     call info.extract {
