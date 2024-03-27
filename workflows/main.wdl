@@ -13,13 +13,13 @@ workflow main {
     }
     
     parameter_meta {
-        query_variants: "A tab delimited file containing the list of query variants. Each line should have the format: Chromosome, Pos, ID, Ref, Alt."
-        query_samples: "A file containing a list of sample IDs. The file should have one sample ID per row. (optional)"
-        imputed_vcf: "An array of imputed VCF files and their indices. The VCF files should be in .vcf.gz format and the indices should be in CSI or TBI format."
-        prefix: "A prefix for the output files."
-        extract_item: "An array of the entry to be extracted from the FORMAT field of the VCF file. The choices are GT,DS,GP."
+        query_variants: "A tab delimited file with list of query variants. Each line should be formatted as: Chromosome, Pos, ID, Ref, Alt. (required)"
+        query_samples: "A file with list of sample IDs. Each line should contain one sample ID. (optional)"
+        imputed_vcf: "Array of imputed VCF files and their indices. VCF files should be in .vcf.gz format and indices in CSI or TBI format. (required)"
+        prefix: "Prefix for the output files. (required)"
+        extract_item: "A string specifying the information to extract from the FORMAT field of the VCF file. The available choices are GT, DS, and GP. Please provide as a comma-separated string. (required)"
     }
-
+    
     call info.extract {
         input: query_variants = query_variants, query_samples = query_samples, imputed_vcf = imputed_vcf, prefix = prefix, extract_item = extract_item
     }
