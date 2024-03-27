@@ -2,20 +2,20 @@
 extract_vcf_info.py
 
 This script extracts specific information from a VCF (Variant Call Format) file and writes the output to a CSV file. 
-The information that can be extracted includes Genotype (GT), Estimated Alternate Allele Dosage (DS), or Estimated Posterior Probabilities for Genotypes 0/0, 0/1 and 1/1 (GP).
+The information that can be extracted includes SNP information (SNP_INFO), Genotype (GT), Estimated Alternate Allele Dosage (DS), or Estimated Posterior Probabilities for Genotypes 0/0, 0/1 and 1/1 (GP).
 
 Usage:
     python3 extract_vcf_info.py --vcf <vcf_file> --extract <info_type> --out <output_file>
 
 Arguments:
     --vcf: The VCF file to parse. This is a required argument.
-    --extract: The type of information to extract. Choices are 'GT', 'DS', 'GP'. This is a required argument.
+    --extract: The type of information to extract. Choices are comma separated: SNP_INFO, GT, DS, GP. If not specified, it will only generate the SNP_INFO file.
     --out: The name of the output file (including the file path). This is a required argument.
 
 Example:
-    python3 extract_vcf_info.py --vcf chr1.vcf.gz --extract GT --out chr1_info.csv
+    python3 extract_vcf_info.py --vcf chr1.vcf.gz --extract GT,SNP_INFO --out chr1_info
 
-This will extract the Genotype (GT) information from the chr1.vcf.gz file and write the output to chr1_info.csv.
+This will extract the Genotype (GT) and SNP information (SNP_INFO) from the chr1.vcf.gz file and write the output to chr1_info_GT.csv and chr1_info_SNP_INFO.csv respectively.
 
 Note: Ensure that the VCF file exists and the output file can be written.
 """
@@ -31,7 +31,7 @@ def extract_vcf_info(vcf_file, extract):
 
     Args:
         vcf_file (str): Path to the VCF file.
-        extract (list): A list containing any of the following: ["GT","DS","GP"]
+        extract (list): A list containing any of the following: ["SNP_INFO", "GT","DS","GP"]
 
     Returns:
         None
@@ -92,19 +92,19 @@ def extract_vcf_info(vcf_file, extract):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description='This script can extract Genotype (GT) or Estimated Alternate Allele Dosage (DS) or Estimated Posterior Probabilities for Genotypes 0/0, 0/1 and 1/1 (GP) information from a VCF file writes the output to a CSV file.',
-        epilog='Ensure that the VCF file exists and the output file can be written.\n\nExample usage:\npython3 extract_vcf_info.py --vcf chr1.vcf.gz --extract GT --out chr1_info.csv\n',
+        description='This script can extract SNP information (SNP_INFO), Genotype (GT), Estimated Alternate Allele Dosage (DS), or Estimated Posterior Probabilities for Genotypes 0/0, 0/1 and 1/1 (GP) information from a VCF file and writes the output to a CSV file.',
+        epilog='Ensure that the VCF file exists and the output file can be written.\n\nExample usage:\npython3 extract_vcf_info.py --vcf chr1.vcf.gz --extract GT,SNP_INFO --out chr1_info\n',
         formatter_class=argparse.RawTextHelpFormatter
     )
     parser.add_argument('--vcf', help='The VCF file to parse.', required=True)
-    parser.add_argument('--extract', help='The type of information to extract. Choices are comma separated: GT, DS, GP. If not specified, it will only generate the SNP_INFO file.', default=None)
-    parser.add_argument('--out', help='Provide the name of output file (including the file path)', required=True)
+    parser.add_argument('--extract', help='The type of information to extract. Choices are comma separated: SNP_INFO, GT, DS, GP. If not specified, it will only generate the SNP_INFO file.', default=None)
+    parser.add_argument('--out', help='Provide the base name of output files (including the file path). The script will append the type of information to the base name.', required=True)
     args = parser.parse_args()
 
-    valid_options = ['GT', 'DS', 'GP']
+    valid_options = ['SNP_INFO', 'GT', 'DS', 'GP']
     if args.extract:
         user_options = args.extract.split(',')
-        extract = ["SNP_INFO"] + [option for option in user_options if option in valid_options]
+        extract = [option for option in user_options if option in valid_options]
     else:
         extract = ["SNP_INFO"]
 
