@@ -4,6 +4,9 @@ import "./tasks/extract_info.wdl" as info
 
 workflow main {
     
+    String pipeline_version = "1.0.0"
+    String container_src = "ghcr.io/IMCM-OX/get-variant-info:~{pipeline_version}"
+    
     input {
         File query_variants
         File? query_samples
@@ -21,7 +24,7 @@ workflow main {
     }
     
     call info.extract {
-        input: query_variants = query_variants, query_samples = query_samples, imputed_vcf = imputed_vcf, prefix = prefix, extract_item = extract_item
+        input: query_variants = query_variants, query_samples = query_samples, imputed_vcf = imputed_vcf, prefix = prefix, extract_item = extract_item, docker = container_src
     }
     
     output {

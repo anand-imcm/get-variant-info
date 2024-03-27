@@ -8,6 +8,7 @@ task extract {
         Array [File] imputed_vcf
         String prefix
         String extract_item
+        String docker
     }
     
     Int disk_size_gb = ceil(size(imputed_vcf, "GiB")) + 5
@@ -54,7 +55,7 @@ task extract {
     }
     
     runtime {
-        docker: "docker.io/library/extract"
+        docker: "~{docker}"
         memory: "32G"
         disks: "local-disk ~{disk_size_gb} HDD"
     }
