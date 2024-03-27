@@ -27,7 +27,7 @@ import pandas as pd
 
 def extract_vcf_info(vcf_file, extract):
     """
-    Extracts Genotype (GT), Estimated Alternate Allele Dosage (DS) or Estimated Posterior Probabilities for Genotypes 0/0, 0/1 and 1/1 (GP) information from a VCF file and writes it to a CSV file.
+    Extracts SNP information such as chromosome, position, reference allele, alternate allele, allele frequency (AF), minor allele frequency (MAF), imputation accuracy (R2), empirical R-square (ER2), and additional information including (IMPUTED, TYPED, TYPED_ONLY), Genotype (GT), Estimated Alternate Allele Dosage (DS) or Estimated Posterior Probabilities for Genotypes 0/0, 0/1 and 1/1 (GP) information from a VCF file and writes it to a CSV file.
 
     Args:
         vcf_file (str): Path to the VCF file.
@@ -38,22 +38,39 @@ def extract_vcf_info(vcf_file, extract):
     """
     print(f"Parsing file: {vcf_file}")
     for option in extract:
-        output_file_temp = f"{args.out}_{option}_temp.txt"
+        output_file_opt = f"{args.out}_{option}.tsv"
         with pysam.VariantFile(vcf_file) as vcf:
-            with open(output_file_temp, 'w') as out:
+            with open(output_file_opt, 'w') as out:
                 sample_names = vcf.header.samples
-                out.write("IID\t" + '\t'.join(sample_names) + "\n")
+                headers = ['SNP','chr', 'position', 'REF', 'ALT','AF','MAF','Rsq','RSqEmp','INFO']
+                if option!= 'SNP_INFO':
+                    out.write("IID\t" + '\t'.join(sample_names) + "\n")
+                else:
+                    out.write('\t'.join(headers) + "\n")
                 for record in vcf:
                     chrom = "NA"
                     pos = "NA"
                     ref = "NA"
                     alt = "NA"
                     info = []
+                    extra_info = "NA"
                     if record.chrom and record.pos and record.ref and record.alts:
                         chrom = record.chrom
                         pos = record.pos
                         ref = record.ref
                         alt = ','.join(map(str, record.alts))
+                    if option == 'SNP_INFO':
+                        af = 'NA' if record.info.get('AF', 'NA') == 'NA' else format(record.info.get('AF', 'NA'), '.5f')
+                        maf = 'NA' if record.info.get('MAF', 'NA') == 'NA' else format(record.info.get('MAF', 'NA'), '.5f')
+                        r2 = 'NA' if record.info.get('R2', 'NA') == 'NA' else format(record.info.get('R2', 'NA'), '.5f')
+                        er2 = 'NA' if record.info.get('ER2', 'NA') == 'NA' else format(record.info.get('ER2', 'NA'), '.5f')
+                        if 'IMPUTED' in record.info:
+                            extra_info = "IMPUTED"
+                        if 'TYPED' in record.info:
+                            extra_info = "TYPED"
+                        if 'TYPED_ONLY' in record.info:
+                            extra_info = "TYPED_ONLY"
+                        out.write(f"{chrom}:{pos}:{ref}:{alt}\t{chrom}\t{pos}\t{ref}\t{alt}\t{af}\t{maf}\t{r2}\t{er2}\t{extra_info}\n")
                     if option == 'GT':
                         info = ['|'.join(map(str, sample['GT'])) if sample['GT'] is not None else 'NA' for sample in record.samples.values()]
                         out.write(f"{chrom}:{pos}:{ref}:{alt}\t" + '\t'.join(info) + "\n")
@@ -63,13 +80,14 @@ def extract_vcf_info(vcf_file, extract):
                     elif option == 'GP':
                         info = ['|'.join(str(int(value)) if value.is_integer() else f'{value:.3f}' for value in sample['GP']) if sample['GP'] is not None else 'NA' for sample in record.samples.values()]
                         out.write(f"{chrom}:{pos}:{ref}:{alt}\t" + '\t'.join(info) + "\n")
-        # transposed file:
-        df = pd.read_csv(output_file_temp, sep='\t', index_col=0)
-        df_transposed = df.transpose().reset_index()
-        df_transposed.rename(columns={'index': 'IID'}, inplace=True)
-        df_transposed.to_csv(f"{args.out}_{option}.csv", sep=',', index=False)
-        os.remove(output_file_temp)
-        print(f"Output generated: {args.out}_{option}.csv")
+        if option!= 'SNP_INFO':
+            # transposed file:
+            df = pd.read_csv(output_file_opt, sep='\t', index_col=0)
+            df_transposed = df.transpose().reset_index()
+            df_transposed.rename(columns={'index': 'IID'}, inplace=True)
+            df_transposed.to_csv(f"{args.out}_{option}.csv", sep=',', index=False)
+            os.remove(output_file_opt)
+            print(f"Output generated: {args.out}_{option}.csv")
 
 
 if __name__ == "__main__":
@@ -79,8 +97,15 @@ if __name__ == "__main__":
         formatter_class=argparse.RawTextHelpFormatter
     )
     parser.add_argument('--vcf', help='The VCF file to parse.', required=True)
-    parser.add_argument('--extract', help='The type of information to extract. Choices are comma separated: GT,DS,GP', required=True)
+    parser.add_argument('--extract', help='The type of information to extract. Choices are comma separated: GT, DS, GP. If not specified, it will only generate the SNP_INFO file.', default=None)
     parser.add_argument('--out', help='Provide the name of output file (including the file path)', required=True)
     args = parser.parse_args()
-    extract = args.extract.split(',')
+
+    valid_options = ['GT', 'DS', 'GP']
+    if args.extract:
+        user_options = args.extract.split(',')
+        extract = ["SNP_INFO"] + [option for option in user_options if option in valid_options]
+    else:
+        extract = ["SNP_INFO"]
+
     extract_vcf_info(args.vcf, extract)
