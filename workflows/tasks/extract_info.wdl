@@ -16,9 +16,12 @@ task extract {
     command <<<
         for vcf in ~{sep=' ' imputed_vcf}; do
             ln -s $vcf $(basename $vcf)
-            # If the index file does not exist, create a csi index
-            if [ ! -f $vcf.csi ]; then
-                bcftools index -c $vcf
+            # Check if the file has the .vcf.gz extension
+            if [[ $vcf == *.vcf.gz ]]; then
+                # If the index file does not exist, create a csi index
+                if [ ! -f $vcf.csi ]; then
+                    bcftools index -c $vcf
+                fi
             fi
         done
         
@@ -29,12 +32,14 @@ task extract {
         VCF_FILES=""
         for chr in $CHROMOSOMES; do
             awk -v chr=$chr '$1 == chr' ~{query_variants} > ${chr}_query_subset_variants_list.txt
-            if [ -f ${chr}_query_subset_variants_list.txt ] && [ -f ~{query_samples} ]; then
-                # If the list of variants and the list of samples exist, create a subset VCF
-                bcftools view --regions-file ${chr}_query_subset_variants_list.txt --samples-file ~{query_samples} ${chr}.dose.vcf.gz > ~{prefix}_${chr}_query_subset.vcf
-            else
-                # If the list of samples does not exist, create a subset VCF without filtering samples
-                bcftools view --regions-file ${chr}_query_subset_variants_list.txt ${chr}.dose.vcf.gz > ~{prefix}_${chr}_query_subset.vcf
+            if [ -f ${chr}_query_subset_variants_list.txt ]; then
+                if [ -n "~{query_samples}" ] && [ -f ~{query_samples} ]; then
+                    # If the list of variants and the list of samples exist, create a subset VCF
+                    bcftools view --regions-file ${chr}_query_subset_variants_list.txt --samples-file ~{query_samples} ${chr}.dose.vcf.gz > ~{prefix}_${chr}_query_subset.vcf
+                else
+                    # If the list of samples does not exist, create a subset VCF without filtering samples
+                    bcftools view --regions-file ${chr}_query_subset_variants_list.txt ${chr}.dose.vcf.gz > ~{prefix}_${chr}_query_subset.vcf
+                fi
             fi
             VCF_FILES="${VCF_FILES} ~{prefix}_${chr}_query_subset.vcf"
         done
