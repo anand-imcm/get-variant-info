@@ -88,6 +88,8 @@ def extract_vcf_info(vcf_file, extract):
             df_transposed.to_csv(f"{args.out}_{option}.csv", sep=',', index=False)
             os.remove(output_file_opt)
             print(f"Output generated: {args.out}_{option}.csv")
+        else:
+            print(f"Output generated: {output_file_opt}")
 
 
 if __name__ == "__main__":
