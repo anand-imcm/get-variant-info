@@ -1,8 +1,8 @@
 # WDL Workflow for Extracting Variant Information
 
-[![Open](https://img.shields.io/badge/Open-Dockstore-blue)](https://dockstore.org/workflows/github.com/IMCM-OX/get-variant-info:main?tab=info)&nbsp;&nbsp;
-![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/IMCM-OX/get-variant-info/publish.yml)&nbsp;&nbsp;
-![GitHub release (with filter)](https://img.shields.io/github/v/release/IMCM-OX/get-variant-info)&nbsp;&nbsp;
+[![Open](https://img.shields.io/badge/Open-Dockstore-blue)](https://dockstore.org/workflows/github.com/anand-imcm/get-variant-info:main?tab=info)&nbsp;&nbsp;
+![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/anand-imcm/get-variant-info/publish.yml)&nbsp;&nbsp;
+![GitHub release (with filter)](https://img.shields.io/github/v/release/anand-imcm/get-variant-info)&nbsp;&nbsp;
 
 > [!TIP]
 > To import the workflow into your Terra workspace, click on the above Dockstore badge, and select 'Terra' from the 'Launch with' widget on the Dockstore workflow page.
