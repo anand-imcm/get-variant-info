@@ -72,7 +72,10 @@ def extract_vcf_info(vcf_file, extract):
                             extra_info = "TYPED_ONLY"
                         out.write(f"{chrom}:{pos}:{ref}:{alt}\t{chrom}\t{pos}\t{ref}\t{alt}\t{af}\t{maf}\t{r2}\t{er2}\t{extra_info}\n")
                     if option == 'GT':
+                        # to print the encoded genotype
                         info = ['|'.join(map(str, sample['GT'])) if sample['GT'] is not None else 'NA' for sample in record.samples.values()]
+                        # to print translated genotype:
+                        # info = ['|'.join(record.alleles[i] if i is not None else 'NA' for i in sample['GT']) for sample in record.samples.values()]
                         out.write(f"{chrom}:{pos}:{ref}:{alt}\t" + '\t'.join(info) + "\n")
                     elif option == 'DS':
                         info = [str(int(sample['DS'])) if sample['DS'].is_integer() else '{:.3f}'.format(sample['DS']) if sample['DS'] is not None else 'NA' for sample in record.samples.values()]
