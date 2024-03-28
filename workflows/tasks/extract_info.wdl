@@ -62,7 +62,7 @@ task extract {
     }
     
     runtime {
-        docker: "docker.io/library/extract"
+        docker: "~{docker}"
         memory: "32G"
         disks: "local-disk ~{disk_size_gb} HDD"
     }
