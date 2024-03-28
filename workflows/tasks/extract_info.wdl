@@ -47,6 +47,8 @@ task extract {
         # Combine the chromosome-wise subset VCFs into a single VCF
         bcftools concat ${VCF_FILES} -o ~{prefix}_query_extracted.vcf
         
+        plink2 --vcf ~{prefix}_query_extracted.vcf --recode compound-genotypes --out ~{prefix}_query_extracted
+        
         # extract snp INFO and FORMAT fields from the VCF
         python3 /scripts/extract_vcf_info.py --vcf ~{prefix}_query_extracted.vcf --out ~{prefix}_extracted --extract ~{extract_item}
     >>>
