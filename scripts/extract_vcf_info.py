@@ -81,15 +81,15 @@ def extract_vcf_info(vcf_file, extract, ped):
                             extra_info = "TYPED_ONLY"
                         out.write(f"{chrom}:{pos}:{ref}:{alt}\t{chrom}\t{pos}\t{ref}\t{alt}\t{af}\t{maf}\t{r2}\t{er2}\t{extra_info}\n")
                     if option == 'GT':
-                        # to print the encoded genotype
-                        info = ['|'.join(map(str, sample['GT'])) if sample['GT'] is not None else 'NA' for sample in record.samples.values()]
+                        # to print the vcf encoded genotype
+                        # info = ['|'.join(map(str, sample['GT'])) if sample['GT'] is not None else 'NA' for sample in record.samples.values()]
                         # to print translated genotype:
-                        # info = ['|'.join(record.alleles[i] if i is not None else 'NA' for i in sample['GT']) for sample in record.samples.values()]
+                        info = [''.join(record.alleles[i] if i is not None else 'NA' for i in sample['GT']) for sample in record.samples.values()]
                         out.write(f"{chrom}:{pos}:{ref}:{alt}\t" + '\t'.join(info) + "\n")
-                    elif option == 'DS':
+                    if option == 'DS':
                         info = [str(int(sample['DS'])) if sample['DS'].is_integer() else '{:.3f}'.format(sample['DS']) if sample['DS'] is not None else 'NA' for sample in record.samples.values()]
                         out.write(f"{chrom}:{pos}:{ref}:{alt}\t" + '\t'.join(info) + "\n")
-                    elif option == 'GP':
+                    if option == 'GP':
                         info = ['|'.join(str(int(value)) if value.is_integer() else f'{value:.3f}' for value in sample['GP']) if sample['GP'] is not None else 'NA' for sample in record.samples.values()]
                         out.write(f"{chrom}:{pos}:{ref}:{alt}\t" + '\t'.join(info) + "\n")
             ped_headers = ['FID', 'IID', 'PAT', 'MAT', 'SEX', 'Phenotype'] + all_variant_IDs
@@ -98,7 +98,8 @@ def extract_vcf_info(vcf_file, extract, ped):
                 ped_df_all = pd.read_csv(ped, sep='\t', header=None, names=ped_headers)
                 ped_df_all = ped_df_all.drop(columns=ped_columns_to_ignore)
                 ped_df_all.to_csv(f"{args.out}_{option}.csv", sep=',', index=False)
-                print(f"Output generated: {output_file_opt}")
+                print(f"Output generated: {args.out}_{option}.csv")
+                os.remove(output_file_opt)
             else:
                 if option!= 'SNP_INFO':
                     # transposed file:
