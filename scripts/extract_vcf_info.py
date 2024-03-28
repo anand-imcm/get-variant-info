@@ -25,7 +25,7 @@ import argparse
 import os
 import pandas as pd
 
-def extract_vcf_info(vcf_file, extract):
+def extract_vcf_info(vcf_file, extract, ped):
     """
     Extracts SNP information such as chromosome, position, reference allele, alternate allele, allele frequency (AF), minor allele frequency (MAF), imputation accuracy (R2), empirical R-square (ER2), and additional information including (IMPUTED, TYPED, TYPED_ONLY), Genotype (GT), Estimated Alternate Allele Dosage (DS) or Estimated Posterior Probabilities for Genotypes 0/0, 0/1 and 1/1 (GP) information from a VCF file and writes it to a CSV file.
 
@@ -39,6 +39,7 @@ def extract_vcf_info(vcf_file, extract):
     print(f"Parsing file: {vcf_file}")
     for option in extract:
         output_file_opt = f"{args.out}_{option}.tsv"
+        all_variant_IDs = []
         with pysam.VariantFile(vcf_file) as vcf:
             with open(output_file_opt, 'w') as out:
                 sample_names = vcf.header.samples
@@ -59,6 +60,7 @@ def extract_vcf_info(vcf_file, extract):
                         pos = record.pos
                         ref = record.ref
                         alt = ','.join(map(str, record.alts))
+                        all_variant_IDs.append(f"{chrom}:{pos}:{ref}:{alt}")
                     if option == 'SNP_INFO':
                         af = 'NA' if record.info.get('AF', 'NA') == 'NA' else format(record.info.get('AF', 'NA'), '.5f')
                         maf = 'NA' if record.info.get('MAF', 'NA') == 'NA' else format(record.info.get('MAF', 'NA'), '.5f')
@@ -83,16 +85,24 @@ def extract_vcf_info(vcf_file, extract):
                     elif option == 'GP':
                         info = ['|'.join(str(int(value)) if value.is_integer() else f'{value:.3f}' for value in sample['GP']) if sample['GP'] is not None else 'NA' for sample in record.samples.values()]
                         out.write(f"{chrom}:{pos}:{ref}:{alt}\t" + '\t'.join(info) + "\n")
-        if option!= 'SNP_INFO':
-            # transposed file:
-            df = pd.read_csv(output_file_opt, sep='\t', index_col=0)
-            df_transposed = df.transpose().reset_index()
-            df_transposed.rename(columns={'index': 'IID'}, inplace=True)
-            df_transposed.to_csv(f"{args.out}_{option}.csv", sep=',', index=False)
-            os.remove(output_file_opt)
-            print(f"Output generated: {args.out}_{option}.csv")
-        else:
-            print(f"Output generated: {output_file_opt}")
+            ped_headers = ['FID', 'IID', 'PAT', 'MAT', 'SEX', 'Phenotype'] + all_variant_IDs
+            ped_columns_to_ignore = ['FID', 'PAT', 'MAT', 'SEX', 'Phenotype']
+            if option == 'GT' and ped:
+                ped_df_all = pd.read_csv(ped, sep='\t', header=None, names=ped_headers)
+                ped_df_all = ped_df_all.drop(columns=ped_columns_to_ignore)
+                ped_df_all.to_csv(f"{args.out}_{option}.csv", sep=',', index=False)
+                print(f"Output generated: {output_file_opt}")
+            else:
+                if option!= 'SNP_INFO':
+                    # transposed file:
+                    df = pd.read_csv(output_file_opt, sep='\t', index_col=0)
+                    df_transposed = df.transpose().reset_index()
+                    df_transposed.rename(columns={'index': 'IID'}, inplace=True)
+                    df_transposed.to_csv(f"{args.out}_{option}.csv", sep=',', index=False)
+                    os.remove(output_file_opt)
+                    print(f"Output generated: {args.out}_{option}.csv")
+                else:
+                    print(f"Output generated: {output_file_opt}")
 
 
 if __name__ == "__main__":
@@ -101,9 +111,10 @@ if __name__ == "__main__":
         epilog='Ensure that the VCF file exists and the output file can be written.\n\nExample usage:\npython3 extract_vcf_info.py --vcf chr1.vcf.gz --extract GT,SNP_INFO --out chr1_info\n',
         formatter_class=argparse.RawTextHelpFormatter
     )
-    parser.add_argument('--vcf', help='The VCF file to parse.', required=True)
-    parser.add_argument('--extract', help='The type of information to extract. Choices are comma separated: SNP_INFO, GT, DS, GP. If not specified, it will only generate the SNP_INFO file.', default=None)
-    parser.add_argument('--out', help='Provide the base name of output files (including the file path). The script will append the type of information to the base name.', required=True)
+    parser.add_argument('--vcf', help='(Required) The VCF file to parse.', required=True)
+    parser.add_argument('--extract', help='(Required) The type of information to extract. Choices are comma separated: SNP_INFO, GT, DS, GP. If not specified, it will only generate the SNP_INFO file.', default=None)
+    parser.add_argument('--ped', help='(Optional) Provide a .ped file containing compound genotypes. If supplied, genotypes will be sourced from this file. Otherwise, genotypes will be extracted from the VCF file.', default=None)
+    parser.add_argument('--out', help='(Required) Provide the base name of output files (including the file path). The script will append the type of information to the base name.', required=True)
     args = parser.parse_args()
 
     valid_options = ['SNP_INFO', 'GT', 'DS', 'GP']
@@ -113,4 +124,4 @@ if __name__ == "__main__":
     else:
         extract = ["SNP_INFO"]
 
-    extract_vcf_info(args.vcf, extract)
+    extract_vcf_info(args.vcf, extract, args.ped)
