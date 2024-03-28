@@ -5,17 +5,18 @@ This script extracts specific information from a VCF (Variant Call Format) file 
 The information that can be extracted includes SNP information (SNP_INFO), Genotype (GT), Estimated Alternate Allele Dosage (DS), or Estimated Posterior Probabilities for Genotypes 0/0, 0/1 and 1/1 (GP).
 
 Usage:
-    python3 extract_vcf_info.py --vcf <vcf_file> --extract <info_type> --out <output_file>
+    python3 extract_vcf_info.py --vcf <vcf_file> --extract <info_type> --out <output_file> [--ped <ped_file>]
 
 Arguments:
     --vcf: The VCF file to parse. This is a required argument.
     --extract: The type of information to extract. Choices are comma separated: SNP_INFO, GT, DS, GP. If not specified, it will only generate the SNP_INFO file.
     --out: The name of the output file (including the file path). This is a required argument.
+    --ped: (Optional) A .ped file containing compound genotypes. If supplied, genotypes will be sourced from this file. Otherwise, genotypes will be extracted from the VCF file.
 
 Example:
-    python3 extract_vcf_info.py --vcf chr1.vcf.gz --extract GT,SNP_INFO --out chr1_info
+    python3 extract_vcf_info.py --vcf chr1.vcf.gz --extract GT,SNP_INFO --out chr1_info --ped chr1.ped
 
-This will extract the Genotype (GT) and SNP information (SNP_INFO) from the chr1.vcf.gz file and write the output to chr1_info_GT.csv and chr1_info_SNP_INFO.csv respectively.
+This will extract the Genotype (GT) and SNP information (SNP_INFO) from the chr1.vcf.gz file and write the output to chr1_info_GT.csv and chr1_info_SNP_INFO.csv respectively. If a .ped file is provided, the genotypes will be sourced from this file.
 
 Note: Ensure that the VCF file exists and the output file can be written.
 """
@@ -27,11 +28,17 @@ import pandas as pd
 
 def extract_vcf_info(vcf_file, extract, ped):
     """
-    Extracts SNP information such as chromosome, position, reference allele, alternate allele, allele frequency (AF), minor allele frequency (MAF), imputation accuracy (R2), empirical R-square (ER2), and additional information including (IMPUTED, TYPED, TYPED_ONLY), Genotype (GT), Estimated Alternate Allele Dosage (DS) or Estimated Posterior Probabilities for Genotypes 0/0, 0/1 and 1/1 (GP) information from a VCF file and writes it to a CSV file.
+    Extracts specific information from a VCF file and writes it to a CSV file. 
+    The information that can be extracted includes SNP information (SNP_INFO), 
+    Genotype (GT), Estimated Alternate Allele Dosage (DS), or Estimated Posterior 
+    Probabilities for Genotypes 0/0, 0/1 and 1/1 (GP). If a .ped file is provided, 
+    genotypes will be sourced from this file. Otherwise, genotypes will be extracted 
+    from the VCF file.
 
     Args:
         vcf_file (str): Path to the VCF file.
         extract (list): A list containing any of the following: ["SNP_INFO", "GT","DS","GP"]
+        ped (str): Optional; Path to the .ped file containing compound genotypes.
 
     Returns:
         None
