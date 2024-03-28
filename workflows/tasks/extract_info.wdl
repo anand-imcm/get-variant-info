@@ -50,7 +50,7 @@ task extract {
         plink2 --vcf ~{prefix}_query_extracted.vcf --recode compound-genotypes --out ~{prefix}_query_extracted
         
         # extract snp INFO and FORMAT fields from the VCF
-        python3 /scripts/extract_vcf_info.py --vcf ~{prefix}_query_extracted.vcf --out ~{prefix}_extracted --extract ~{extract_item}
+        python3 /scripts/extract_vcf_info.py --vcf ~{prefix}_query_extracted.vcf --out ~{prefix}_extracted --extract ~{extract_item} --ped ~{prefix}_query_extracted.ped
     >>>
     
     output {
@@ -62,7 +62,7 @@ task extract {
     }
     
     runtime {
-        docker: "~{docker}"
+        docker: "docker.io/library/extract"
         memory: "32G"
         disks: "local-disk ~{disk_size_gb} HDD"
     }
