@@ -5,9 +5,9 @@ channels:
   - defaults
 dependencies:
 - python=3.10
-- bcftools<=1.18
+- bcftools<=1.19
 - plink2<=2.00a5.10
 - pip
 - pip:
-  - pysam
-  - pandas
+  - pysam==0.22.0
+  - pandas==2.2.1
