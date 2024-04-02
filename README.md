@@ -64,13 +64,12 @@ The output is a set of files containing the extracted information.
 ## Components
 
 - **Python packages**
-  - pysam
-  - pandas
-  - argparse
+  - pysam==0.22.0
+  - pandas==2.2.1
 
 - **Tools**
-  - bcftools
-  - plink2
+  - [bcftools](https://doi.org/10.1093/gigascience/giab008)
+  - [PLINK 2.0](https://doi.org/10.1186/s13742-015-0047-8)
 
 - **Containers**
   - ghcr.io/anand-imcm/get-variant-info
