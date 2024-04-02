@@ -8,6 +8,7 @@ task extract {
         Array [File] imputed_vcf
         String prefix
         String extract_item
+        Boolean use_GT_from_PED = false
         String docker
     }
     
@@ -47,10 +48,13 @@ task extract {
         # Combine the chromosome-wise subset VCFs into a single VCF
         bcftools concat ${VCF_FILES} -o ~{prefix}_query_extracted.vcf
         
-        plink2 --vcf ~{prefix}_query_extracted.vcf --recode compound-genotypes --out ~{prefix}_query_extracted
-        
         # extract snp INFO and FORMAT fields from the VCF
-        python3 /scripts/extract_vcf_info.py --vcf ~{prefix}_query_extracted.vcf --out ~{prefix}_extracted --extract ~{extract_item} --ped ~{prefix}_query_extracted.ped
+        if [ "~{use_GT_from_PED}" = "true" ]; then
+            plink2 --vcf ~{prefix}_query_extracted.vcf --recode compound-genotypes --out ~{prefix}_query_extracted
+            python3 /scripts/extract_vcf_info.py --vcf ~{prefix}_query_extracted.vcf --out ~{prefix}_extracted --extract ~{extract_item} --ped ~{prefix}_query_extracted.ped
+        else
+            python3 /scripts/extract_vcf_info.py --vcf ~{prefix}_query_extracted.vcf --out ~{prefix}_extracted --extract ~{extract_item}
+        fi
     >>>
     
     output {
@@ -62,7 +66,7 @@ task extract {
     }
     
     runtime {
-        docker: "~{docker}"
+        docker: "docker.io/library/extract"
         memory: "32G"
         disks: "local-disk ~{disk_size_gb} HDD"
     }
