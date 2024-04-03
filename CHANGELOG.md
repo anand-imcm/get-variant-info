@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.2] - 2024-04-03
+
+### Added
+- Added a new boolean input variable "match_by_pos_only" to allow matching variants based on position only.
+- Added conditional execution of commands in the loop based on the "match_by_pos_only" flag. If "match_by_pos_only" is true, a tab-delimited file is created with the chromosome, position, reference allele, and alternate allele from the subset VCF file. The exact chromosome, position, reference allele, and alternate allele from the newly created file are then matched with the subset variants list, and a final VCF file with the matched alleles is created.
+- Updated the "VCF_FILES" variable to include the correct file name based on the "match_by_pos_only" condition.
+
 ## [1.1.1] - 2024-04-02
 
 ### Added
