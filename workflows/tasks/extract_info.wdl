@@ -8,8 +8,9 @@ task extract {
         Array [File] imputed_vcf
         String prefix
         String extract_item
-        Boolean use_GT_from_PED = false
         String docker
+        Boolean use_GT_from_PED = false
+        Boolean match_pos_only = false
     }
     
     Int disk_size_gb = ceil(size(imputed_vcf, "GiB")) + 5
@@ -17,38 +18,37 @@ task extract {
     command <<<
         for vcf in ~{sep=' ' imputed_vcf}; do
             ln -s $vcf $(basename $vcf)
-            # Check if the file has the .vcf.gz extension
             if [[ $vcf == *.vcf.gz ]]; then
-                # If the index file does not exist, create a csi index
                 if [ ! -f $vcf.csi ]; then
                     bcftools index -c $vcf
                 fi
             fi
         done
         
-        # Get unique chromosome names from the query_variants file
         CHROMOSOMES=$(awk '{print $1}' ~{query_variants} | sort | uniq)
         
-        # Split the query_variants file per chromosome and create a subset vcf
         VCF_FILES=""
         for chr in $CHROMOSOMES; do
             awk -v chr=$chr '$1 == chr' ~{query_variants} > ${chr}_query_subset_variants_list.txt
             if [ -f ${chr}_query_subset_variants_list.txt ]; then
                 if [ -n "~{query_samples}" ] && [ -f ~{query_samples} ]; then
-                    # If the list of variants and the list of samples exist, create a subset VCF
                     bcftools view --regions-file ${chr}_query_subset_variants_list.txt --samples-file ~{query_samples} ${chr}.dose.vcf.gz > ~{prefix}_${chr}_query_subset.vcf
                 else
-                    # If the list of samples does not exist, create a subset VCF without filtering samples
                     bcftools view --regions-file ${chr}_query_subset_variants_list.txt ${chr}.dose.vcf.gz > ~{prefix}_${chr}_query_subset.vcf
                 fi
+                if [ "~{match_pos_only}" = "false" ]; then
+                    bcftools query -f '%CHROM\t%POS\t%REF\t%ALT\n' ~{prefix}_${chr}_query_subset.vcf > variants.txt
+                    awk 'BEGIN {FS="\t"} NR==FNR{a[$1,$2,$4,$5]; next} ($1,$2,$3,$4) in a {print}' ${chr}_query_subset_variants_list.txt variants.txt > matched_variants.txt
+                    bcftools view -T matched_variants.txt ~{prefix}_${chr}_query_subset.vcf -Ov -o ~{prefix}_${chr}_query_matched_alleles_subset.vcf
+                    VCF_FILES="${VCF_FILES} ~{prefix}_${chr}_query_matched_alleles_subset.vcf"
+                else
+                    VCF_FILES="${VCF_FILES} ~{prefix}_${chr}_query_subset.vcf"
+                fi
             fi
-            VCF_FILES="${VCF_FILES} ~{prefix}_${chr}_query_subset.vcf"
         done
         
-        # Combine the chromosome-wise subset VCFs into a single VCF
         bcftools concat ${VCF_FILES} -o ~{prefix}_query_extracted.vcf
         
-        # extract snp INFO and FORMAT fields from the VCF
         if [ "~{use_GT_from_PED}" = "true" ]; then
             plink2 --vcf ~{prefix}_query_extracted.vcf --recode compound-genotypes --out ~{prefix}_query_extracted
             python3 /scripts/extract_vcf_info.py --vcf ~{prefix}_query_extracted.vcf --out ~{prefix}_extracted --extract ~{extract_item} --ped ~{prefix}_query_extracted.ped
