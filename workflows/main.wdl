@@ -4,7 +4,7 @@ import "./tasks/extract_info.wdl" as info
 
 workflow main {
     
-    String pipeline_version = "1.1.2"
+    String pipeline_version = "1.1.3"
     String container_src = "ghcr.io/anand-imcm/get-variant-info:~{pipeline_version}"
     
     input {

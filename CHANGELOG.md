@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.3] - 2024-04-11
+
+### Added
+- Fixed the python file to ensure precise variant filtration based on chromosome, position, reference, and alternate alleles.
+
 ## [1.1.2] - 2024-04-03
 
 ### Added
