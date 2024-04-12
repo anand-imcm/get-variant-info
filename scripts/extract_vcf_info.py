@@ -8,7 +8,6 @@ Usage:
     python3 extract_vcf_info.py --vcf <vcf_file> --extract <info_type> --out <output_file> [--ped <ped_file>]
 
 Arguments:
-    --vars: The list of query variants. Each line should be formatted as: Chromosome, Pos, ID, Ref, Alt. This will be used to filter the output.
     --vcf: The VCF file to parse. This is a required argument.
     --extract: The type of information to extract. Choices are comma separated: SNP_INFO, GT, DS, GP. If not specified, it will only generate the SNP_INFO file.
     --out: The name of the output file (including the file path). This is a required argument.
@@ -27,22 +26,7 @@ import argparse
 import os
 import pandas as pd
 
-def get_query_vars(query_list):
-    """
-    Extracts chr:pos:ref:alt from the given file and returns a unique list of variants.
-
-    Args:
-        query_list (str) : The list of query variants. Each line should be formatted as: Chromosome, Pos, ID, Ref, Alt. This will be used to filter the output
-
-    Returns:
-        unique_ids (list) :  A list containing variants in chr:pos:ref:alt format.
-    """
-    query_df = pd.read_csv(query_list, sep='\t', header=None, names=['chr', 'pos', 'source', 'ref', 'alt'])
-    query_df['id'] = query_df['chr'].astype(str) + ":" + query_df['pos'].astype(str) + ":" + query_df['ref'] + ":" + query_df['alt']
-    unique_ids = query_df['id'].unique().tolist()
-    return unique_ids
-
-def extract_vcf_info(vcf_file, extract, ped, query_variants):
+def extract_vcf_info(vcf_file, extract, ped):
     """
     Extracts specific information from a VCF file and writes it to a CSV file. 
     The information that can be extracted includes SNP information (SNP_INFO), 
@@ -55,7 +39,6 @@ def extract_vcf_info(vcf_file, extract, ped, query_variants):
         vcf_file (str): Path to the VCF file.
         extract (list): A list containing any of the following: ["SNP_INFO", "GT","DS","GP"]
         ped (str): Optional; Path to the .ped file containing compound genotypes.
-        query_variants (list) : A list containing variants in chr:pos:ref:alt format.
 
     Returns:
         None
@@ -84,10 +67,7 @@ def extract_vcf_info(vcf_file, extract, ped, query_variants):
                         pos = record.pos
                         ref = record.ref
                         alt = ','.join(map(str, record.alts))
-                        vcf_var = f"{chrom}:{pos}:{ref}:{alt}"
-                        if vcf_var in query_variants:
-                            all_variant_IDs.append(f"{chrom}:{pos}:{ref}:{alt}")
-                        
+                        all_variant_IDs.append(f"{chrom}:{pos}:{ref}:{alt}")
                     if option == 'SNP_INFO':
                         af = 'NA' if record.info.get('AF', 'NA') == 'NA' else format(record.info.get('AF', 'NA'), '.5f')
                         maf = 'NA' if record.info.get('MAF', 'NA') == 'NA' else format(record.info.get('MAF', 'NA'), '.5f')
@@ -99,9 +79,13 @@ def extract_vcf_info(vcf_file, extract, ped, query_variants):
                             extra_info = "TYPED"
                         if 'TYPED_ONLY' in record.info:
                             extra_info = "TYPED_ONLY"
-                        if f"{chrom}:{pos}:{ref}:{alt}" in query_variants:
-                            out.write(f"{chrom}:{pos}:{ref}:{alt}\t{chrom}\t{pos}\t{ref}\t{alt}\t{af}\t{maf}\t{r2}\t{er2}\t{extra_info}\n")
+                        out.write(f"{chrom}:{pos}:{ref}:{alt}\t{chrom}\t{pos}\t{ref}\t{alt}\t{af}\t{maf}\t{r2}\t{er2}\t{extra_info}\n")
                     if option == 'GT' and not ped:
+                        # to print the vcf encoded genotype
+                        # info = ['|'.join(map(str, sample['GT'])) if sample['GT'] is not None else 'NA' for sample in record.samples.values()]
+                        # to print translated genotype without reordering:
+                        # info = [''.join(record.alleles[i] if i is not None else 'NA' for i in sample['GT']) for sample in record.samples.values()]
+                        # to print genotypes based of custom reorder
                         info = []
                         for sample in record.samples.values():
                             if sample['GT'] is not None:
@@ -113,16 +97,13 @@ def extract_vcf_info(vcf_file, extract, ped, query_variants):
                                     info.append(alt + alt)
                             else:
                                 info.append('NA')
-                        if f"{chrom}:{pos}:{ref}:{alt}" in query_variants:
-                            out.write(f"{chrom}:{pos}:{ref}:{alt}\t" + '\t'.join(info) + "\n")
+                        out.write(f"{chrom}:{pos}:{ref}:{alt}\t" + '\t'.join(info) + "\n")
                     if option == 'DS':
                         info = [str(int(sample['DS'])) if sample['DS'].is_integer() else '{:.3f}'.format(sample['DS']) if sample['DS'] is not None else 'NA' for sample in record.samples.values()]
-                        if f"{chrom}:{pos}:{ref}:{alt}" in query_variants:
-                            out.write(f"{chrom}:{pos}:{ref}:{alt}\t" + '\t'.join(info) + "\n")
+                        out.write(f"{chrom}:{pos}:{ref}:{alt}\t" + '\t'.join(info) + "\n")
                     if option == 'GP':
                         info = ['|'.join(str(int(value)) if value.is_integer() else f'{value:.3f}' for value in sample['GP']) if sample['GP'] is not None else 'NA' for sample in record.samples.values()]
-                        if f"{chrom}:{pos}:{ref}:{alt}" in query_variants:
-                            out.write(f"{chrom}:{pos}:{ref}:{alt}\t" + '\t'.join(info) + "\n")
+                        out.write(f"{chrom}:{pos}:{ref}:{alt}\t" + '\t'.join(info) + "\n")
             ped_headers = ['FID', 'IID', 'PAT', 'MAT', 'SEX', 'Phenotype'] + all_variant_IDs
             ped_columns_to_ignore = ['FID', 'PAT', 'MAT', 'SEX', 'Phenotype']
             if option == 'GT' and ped:
@@ -150,7 +131,6 @@ if __name__ == "__main__":
         epilog='Ensure that the VCF file exists and the output file can be written.\n\nExample usage:\npython3 extract_vcf_info.py --vcf chr1.vcf.gz --extract GT,SNP_INFO --out chr1_info\n',
         formatter_class=argparse.RawTextHelpFormatter
     )
-    parser.add_argument('--vars', help='(Optional) List of query variants. Each line should be formatted as: Chromosome, Pos, ID, Ref, Alt. This will be used to filter the output.',default=None)
     parser.add_argument('--vcf', help='(Required) The VCF file to parse.', required=True)
     parser.add_argument('--extract', help='(Required) The type of information to extract. Choices are comma separated: SNP_INFO, GT, DS, GP. If not specified, it will only generate the SNP_INFO file.', default=None)
     parser.add_argument('--ped', help='(Optional) Provide a .ped file containing compound genotypes. If supplied, genotypes will be sourced from this file. Otherwise, genotypes will be extracted from the VCF file.', default=None)
@@ -164,5 +144,4 @@ if __name__ == "__main__":
     else:
         extract = ["SNP_INFO"]
 
-    query_vars = get_query_vars(args.vars)
-    extract_vcf_info(args.vcf, extract, args.ped, query_vars)
+    extract_vcf_info(args.vcf, extract, args.ped)
