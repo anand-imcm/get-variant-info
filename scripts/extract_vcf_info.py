@@ -81,11 +81,6 @@ def extract_vcf_info(vcf_file, extract, ped):
                             extra_info = "TYPED_ONLY"
                         out.write(f"{chrom}:{pos}:{ref}:{alt}\t{chrom}\t{pos}\t{ref}\t{alt}\t{af}\t{maf}\t{r2}\t{er2}\t{extra_info}\n")
                     if option == 'GT' and not ped:
-                        # to print the vcf encoded genotype
-                        # info = ['|'.join(map(str, sample['GT'])) if sample['GT'] is not None else 'NA' for sample in record.samples.values()]
-                        # to print translated genotype without reordering:
-                        # info = [''.join(record.alleles[i] if i is not None else 'NA' for i in sample['GT']) for sample in record.samples.values()]
-                        # to print genotypes based of custom reorder
                         info = []
                         for sample in record.samples.values():
                             if sample['GT'] is not None:
