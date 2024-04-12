@@ -37,9 +37,7 @@ task extract {
                     bcftools view --regions-file ${chr}_query_subset_variants_list.txt ${chr}.dose.vcf.gz > ~{prefix}_${chr}_query_subset.vcf
                 fi
                 if [ "~{match_pos_only}" = "false" ]; then
-                    bcftools query -f '%CHROM\t%POS\t%REF\t%ALT\n' ~{prefix}_${chr}_query_subset.vcf > variants.txt
-                    awk 'BEGIN {FS="\t"} NR==FNR{a[$1,$2,$4,$5]; next} ($1,$2,$3,$4) in a {print}' ${chr}_query_subset_variants_list.txt variants.txt > matched_variants.txt
-                    bcftools view -T matched_variants.txt ~{prefix}_${chr}_query_subset.vcf -Ov -o ~{prefix}_${chr}_query_matched_alleles_subset.vcf
+                    python3 /scripts/filter_vcf.py --query ${chr}_query_subset_variants_list.txt --vcf ~{prefix}_${chr}_query_subset.vcf --out ~{prefix}_${chr}_query_matched_alleles_subset
                     VCF_FILES="${VCF_FILES} ~{prefix}_${chr}_query_matched_alleles_subset.vcf"
                 else
                     VCF_FILES="${VCF_FILES} ~{prefix}_${chr}_query_subset.vcf"
@@ -51,9 +49,9 @@ task extract {
         
         if [ "~{use_GT_from_PED}" = "true" ]; then
             plink2 --vcf ~{prefix}_query_extracted.vcf --recode compound-genotypes --out ~{prefix}_query_extracted
-            python3 /scripts/extract_vcf_info.py --vcf ~{prefix}_query_extracted.vcf --out ~{prefix}_extracted --extract ~{extract_item} --ped ~{prefix}_query_extracted.ped --vars ~{query_variants}
+            python3 /scripts/extract_vcf_info.py --vcf ~{prefix}_query_extracted.vcf --out ~{prefix}_extracted --extract ~{extract_item} --ped ~{prefix}_query_extracted.ped
         else
-            python3 /scripts/extract_vcf_info.py --vcf ~{prefix}_query_extracted.vcf --out ~{prefix}_extracted --extract ~{extract_item} --vars ~{query_variants}
+            python3 /scripts/extract_vcf_info.py --vcf ~{prefix}_query_extracted.vcf --out ~{prefix}_extracted --extract ~{extract_item}
         fi
     >>>
     
