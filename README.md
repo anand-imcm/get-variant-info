@@ -28,7 +28,7 @@ The output is a set of files containing the extracted information.
 
 ## Workflow Inputs
 
-- `query_variants`: A tab-delimited file with a list of query variants. Each line should be formatted as: Chromosome, Pos, ID, Ref, Alt. (required)
+- `query_variants`: A tab-delimited file with a list of query variants. Each line should be formatted as: Chromosome, Pos, ID, Ref, Alt. Each field should be separated by a tab. The Chromosome field should have a "chr" prefix (e.g., chr1, chr2, etc.). (required)
 - `query_samples`: A file with a list of sample IDs. Each line should contain one sample ID. (optional)
 - `imputed_vcf`: Array of imputed VCF files and their indices. VCF files should be in .vcf.gz format and indices in CSI or TBI format. (required)
 - `prefix`: Prefix for the output files. (required)
