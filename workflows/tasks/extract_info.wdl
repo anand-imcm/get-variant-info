@@ -45,7 +45,8 @@ task extract {
             fi
         done
         
-        bcftools concat ${VCF_FILES} -o ~{prefix}_query_extracted.vcf
+        bcftools concat ${VCF_FILES} -o ~{prefix}_query_extracted_concat.vcf
+        bcftools norm --rm-dup exact ~{prefix}_query_extracted_concat.vcf -o ~{prefix}_query_extracted.vcf
         
         if [ "~{use_GT_from_PED}" = "true" ]; then
             plink2 --vcf ~{prefix}_query_extracted.vcf --recode compound-genotypes --out ~{prefix}_query_extracted
