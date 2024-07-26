@@ -19,8 +19,8 @@ task extract {
         for vcf in ~{sep=' ' imputed_vcf}; do
             ln -s $vcf $(basename $vcf)
             if [[ $vcf == *.vcf.gz ]]; then
-                if [ ! -f $vcf.csi ]; then
-                    bcftools index -c $vcf
+                if [ ! -f $vcf.csi ] && [ ! -f $vcf.tbi ]; then
+                    bcftools index -c $(basename $vcf)
                 fi
             fi
         done
