@@ -1,4 +1,10 @@
-FROM mambaorg/micromamba:1.5.8
+FROM mambaorg/micromamba:1.5.5
+
+USER root
+
+RUN apt-get update && apt-get install -y openssl libssl-dev && rm -rf /var/lib/apt/lists/*
+
+USER $MAMBA_USER
 
 COPY --chown=$MAMBA_USER:$MAMBA_USER ./container/environment.yml /tmp/
 
