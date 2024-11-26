@@ -2,10 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.1.3] - 2024-04-11
+## [1.1.3] - 2024-11-26
 
 ### Added
 - Fixed the python file to ensure precise variant filtration based on chromosome, position, reference, and alternate alleles.
+- Added `--force-samples` when subsetting based on sample IDs.
 
 ## [1.1.2] - 2024-04-03
 
@@ -30,4 +31,3 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Initial release
-
