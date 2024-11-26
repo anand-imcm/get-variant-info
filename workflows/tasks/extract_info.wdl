@@ -32,7 +32,7 @@ task extract {
             awk -v chr=$chr '$1 == chr' ~{query_variants} > ${chr}_query_subset_variants_list.txt
             if [ -f ${chr}_query_subset_variants_list.txt ]; then
                 if [ -n "~{query_samples}" ] && [ -f ~{query_samples} ]; then
-                    bcftools view --regions-file ${chr}_query_subset_variants_list.txt --samples-file ~{query_samples} ${chr}.dose*vcf.gz > ~{prefix}_${chr}_query_subset.vcf
+                    bcftools view --regions-file ${chr}_query_subset_variants_list.txt --samples-file ~{query_samples} --force-samples ${chr}.dose*vcf.gz > ~{prefix}_${chr}_query_subset.vcf
                 else
                     bcftools view --regions-file ${chr}_query_subset_variants_list.txt ${chr}.dose*vcf.gz > ~{prefix}_${chr}_query_subset.vcf
                 fi
